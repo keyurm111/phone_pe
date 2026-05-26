@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Recipient UPI Config
     const RECIPIENT_UPI = 'paytm.s1pmkmg@pty';
     const RECIPIENT_NAME = 'ABHAY MAKWANA';
-    const TRANSACTION_NOTE = 'Donation to Uplift';
+    const TRANSACTION_NOTE = 'Donation';
 
     // Campaign Target State
     let currentRaised = 72400;
@@ -187,33 +187,37 @@ document.addEventListener('DOMContentLoaded', () => {
             case 'phonepe':
                 if (isAndroid) {
                     appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
-                } else if (isIOS) {
-                    appLink = `phonepe://pay?${params}`;
+                } else {
+                    appLink = upiLink;
                 }
                 break;
             case 'gpay':
                 if (isAndroid) {
                     appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-                } else if (isIOS) {
-                    appLink = `tez://upi/pay?${params}`;
+                } else {
+                    appLink = upiLink;
                 }
                 break;
             case 'paytm':
                 if (isAndroid) {
                     appLink = `intent://pay?${params}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                } else if (isIOS) {
-                    appLink = `paytmmp://pay?${params}`;
+                } else {
+                    appLink = upiLink;
                 }
                 break;
+            default:
+                appLink = upiLink;
         }
 
         // Execute app launch
         window.location.href = appLink;
 
-        // Auto trigger validation modal after delay when user returns to screen
-        setTimeout(() => {
-            triggerVerification();
-        }, 2000);
+        // Auto trigger verification only when the user returns to the browser screen
+        document.addEventListener("visibilitychange", () => {
+            if (!document.hidden) {
+                triggerVerification();
+            }
+        }, { once: true });
     }
 
     // Form inputs validation
