@@ -148,7 +148,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // UPI Link Generator
     function getUPILink(txnId) {
         const trParam = txnId ? `&tr=${txnId}` : `&tr=TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        return `upi://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}${trParam}`;
+        return `upi://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${Number(selectedAmount).toFixed(2)}&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}${trParam}`;
     }
 
     // QR Code Engine
@@ -177,39 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        let appLink = upiLink;
-
-        switch (method) {
-            case 'phonepe':
-                if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=com.phonepe.app;end`;
-                } else if (isIOS) {
-                    appLink = `phonepe://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
-                }
-                break;
-            case 'gpay':
-                if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-                } else if (isIOS) {
-                    appLink = `gpay://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
-                }
-                break;
-            case 'paytm':
-                if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                } else if (isIOS) {
-                    appLink = `paytmmp://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
-                }
-                break;
-        }
-
-        // Execute app launch
-        window.location.href = appLink;
+        // Execute app launch using the standard, universal UPI link.
+        // This processes the transaction on the open UPI rail (like scanning a QR code)
+        // to prevent direct-merchant app validation declines.
+        window.location.href = upiLink;
 
         // Auto trigger validation modal after delay when user returns to screen
         setTimeout(() => {
             triggerVerification();
-        }, 1500);
+        }, 2000);
     }
 
     // Form inputs validation
