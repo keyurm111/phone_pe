@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // 2. App-Specific Custom Schemes (iOS/Generic Routing)
             if (isIOS) {
                 if (method === 'phonepe') {
-                    appLink = `phonepe:upi://pay?${standardParams}`;
+                    appLink = `phonepe://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${amtStr}&cu=INR`;
                 } else if (method === 'gpay') {
                     appLink = `tez://upi/pay?${standardParams}`;
                 } else if (method === 'paytm') {
