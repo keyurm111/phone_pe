@@ -177,10 +177,38 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Execute app launch using the standard, universal UPI link.
-        // This processes the transaction on the open UPI rail (like scanning a QR code)
-        // to prevent direct-merchant app validation declines.
-        window.location.href = upiLink;
+        let appLink = upiLink;
+
+        // Custom deep link formatting for targeted app launching
+        const amtStr = Number(selectedAmount).toFixed(2);
+        const params = `pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${amtStr}&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
+
+        switch (method) {
+            case 'phonepe':
+                if (isAndroid) {
+                    appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
+                } else if (isIOS) {
+                    appLink = `phonepe://pay?${params}`;
+                }
+                break;
+            case 'gpay':
+                if (isAndroid) {
+                    appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+                } else if (isIOS) {
+                    appLink = `tez://upi/pay?${params}`;
+                }
+                break;
+            case 'paytm':
+                if (isAndroid) {
+                    appLink = `intent://pay?${params}#Intent;scheme=upi;package=net.one97.paytm;end`;
+                } else if (isIOS) {
+                    appLink = `paytmmp://pay?${params}`;
+                }
+                break;
+        }
+
+        // Execute app launch
+        window.location.href = appLink;
 
         // Auto trigger validation modal after delay when user returns to screen
         setTimeout(() => {
