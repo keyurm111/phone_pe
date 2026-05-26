@@ -14,10 +14,37 @@ document.addEventListener('DOMContentLoaded', () => {
     let donorName = 'John Doe';
     let donorEmail = '';
 
-    // Device / Platform Detection
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    const isMobile = isAndroid || isIOS;
+    // Device / Platform Detection (ported from React detectOS())
+    // isDevice: "and" = Android, "ios" = iOS, "des" = Desktop
+    let isDevice = 'des';
+
+    function detectOS() {
+        // Modern browsers (Chromium-based) — userAgentData API
+        if (navigator.userAgentData) {
+            const platform = navigator.userAgentData.platform;
+            if (platform === 'Android') { isDevice = 'and'; return; }
+            if (platform === 'iOS')     { isDevice = 'ios'; return; }
+        }
+        // Fallback for Safari / older browsers
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        // iOS detection (includes iPadOS 13+ which reports MacIntel)
+        if (
+            /iPad|iPhone|iPod/.test(ua) ||
+            (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)
+        ) {
+            isDevice = 'ios';
+        } else if (/Android/i.test(ua)) {
+            isDevice = 'and';
+        } else {
+            isDevice = 'des';
+        }
+    }
+    detectOS();
+
+    // Convenience boolean helpers (used by WebView detection below)
+    const _isAndroid = isDevice === 'and';
+    const _isIOS     = isDevice === 'ios';
+    const _isMobile  = _isAndroid || _isIOS;
 
     // DOM Elements - Config
     const presetPills = document.querySelectorAll('.preset-pill');
@@ -84,6 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedAmount = parseInt(pill.getAttribute('data-amount'));
             customAmountInput.value = selectedAmount;
             updatePricingDisplays();
+            openPhonepayy(); // keep PhonePe URL in sync with new amount
         });
     });
 
@@ -94,6 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!isNaN(val) && val > 0) {
             selectedAmount = val;
             updatePricingDisplays();
+            openPhonepayy(); // keep PhonePe URL in sync with new amount
             
             // Check if matches preset pill and highlight it
             const matchingPreset = document.querySelector(`.preset-pill[data-amount="${val}"]`);
@@ -145,13 +174,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // UPI Link Generator
+    // ─── UPI Link Generator (Standard NPCI URI) ───────────────────────────────
     function getUPILink(txnId) {
         const trParam = txnId ? txnId : `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
         return `upi://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${Number(selectedAmount).toFixed(2)}&cu=INR&tr=${trParam}`;
     }
 
-    // QR Code Engine
+    // ─── QR Code Engine ───────────────────────────────────────────────────────
     function generateQRCode() {
         const upiLink = getUPILink();
         new QRious({
@@ -164,129 +193,128 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Launch mobile intents/deep-links
-    function triggerPaymentMethod(method) {
-        const txnId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        const amtStr = Number(selectedAmount).toFixed(2);
+    // ─── openPhonepayy() — PhonePe Android native deep-link (Base64 payload) ──
+    // Exact port from React component: builds full p2pPaymentCheckoutParams payload
+    let paymentUrl = '';
+    function openPhonepayy() {
+        const generatePhonePeLink = ({ vpa, amount, nickname = 'demo', cbsName = 'ok' }) => {
+            if (!vpa)    throw new Error('UPI ID is required');
+            if (!amount) throw new Error('Amount is required');
 
-        // 1. Standard UPI Intent URI parameters (NPCI specification)
-        const standardParams =
-            `pa=${encodeURIComponent(RECIPIENT_UPI)}` +
-            `&pn=${encodeURIComponent(RECIPIENT_NAME)}` +
-            `&am=${amtStr}` +
-            `&cu=INR` +
-            `&tr=${txnId}`;
+            const orderId = crypto.randomUUID();
 
-        const genericUPI = `upi://pay?${standardParams}`;
-        let appLink = genericUPI;
+            const payload = {
+                contact: {
+                    cbsName,
+                    nickName: nickname,
+                    vpa,
+                    type: 'VPA'
+                },
+                p2pPaymentCheckoutParams: {
+                    note:                          `OrderNo: ${orderId}`,
+                    isByDefaultKnownContact:       true,
+                    enableSpeechToText:            false,
+                    allowAmountEdit:               false,
+                    showQrCodeOption:              false,
+                    disableViewHistory:            true,
+                    shouldShowUnsavedContactBanner: false,
+                    isRecurring:                   false,
+                    checkoutType:                  'DEFAULT',
+                    transactionContext:            'p2p',
+                    initialAmount:                 Number(amount) * 100,  // Paise
+                    disableNotesEdit:              true,
+                    showKeyboard:                  true,
+                    currency:                      'INR',
+                    shouldShowMaskedNumber:        true
+                }
+            };
 
-        if (!isMobile) {
-            document.getElementById('radio-qr').checked = true;
-            document.getElementById('radio-qr').dispatchEvent(new Event('change'));
+            const base64Data = btoa(JSON.stringify(payload));
+            return `phonepe://native?data=${base64Data}&id=p2ppayment`;
+        };
+
+        paymentUrl = generatePhonePeLink({ vpa: RECIPIENT_UPI, amount: selectedAmount });
+        console.log('[PhonePe] Native URL generated:', paymentUrl);
+    }
+    // Pre-generate on load so it is ready when user taps Pay
+    openPhonepayy();
+
+    // ─── openPhonepay() — PhonePe simple UPI scheme (fallback / non-Android) ──
+    function openPhonepay() {
+        const url = `phonepe://upi//pay?pa=${RECIPIENT_UPI}&pn=Shop&am=${selectedAmount}&cu=INR`;
+        window.location.href = url;
+    }
+
+    // ─── openPaytm() — Paytm deep-link (paytmmp://cash_wallet scheme) ─────────
+    // Exact port from React component
+    function openPaytm() {
+        const url =
+            'paytmmp://cash_wallet?pa=' + RECIPIENT_UPI +
+            '&pn=Shop' +
+            '&am=' + selectedAmount +
+            '&cu=INR' +
+            '&tn=8715162375' +
+            '&featuretype=money_transfer';
+        window.location.href = url;
+    }
+
+    // ─── paymentHandler() — main routing logic (ported from React) ───────────
+    // Routes based on currently selected UPI sub-method and detected platform
+    function paymentHandler(upimethod) {
+        if (upimethod === 'phonepe') {
+            if (isDevice === 'and') {
+                // Android: use native PhonePe Base64 deep-link
+                window.location.href = paymentUrl;
+            } else if (isDevice === 'ios') {
+                // iOS: use simple UPI custom scheme
+                openPhonepay();
+            } else {
+                // Desktop: fall back to QR display
+                document.getElementById('radio-qr').checked = true;
+                document.getElementById('radio-qr').dispatchEvent(new Event('change'));
+                return; // skip verification — wait for user to confirm scan
+            }
+        } else if (upimethod === 'gpay') {
+            if (isDevice === 'and') {
+                const txnId  = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+                const params = `pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${Number(selectedAmount).toFixed(2)}&cu=INR&tr=${txnId}`;
+                window.location.href = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+            } else if (isDevice === 'ios') {
+                const txnId  = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+                const params = `pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${Number(selectedAmount).toFixed(2)}&cu=INR&tr=${txnId}`;
+                window.location.href = `tez://upi/pay?${params}`;
+            } else {
+                document.getElementById('radio-qr').checked = true;
+                document.getElementById('radio-qr').dispatchEvent(new Event('change'));
+                return;
+            }
+        } else if (upimethod === 'paytm') {
+            // Use paytmmp://cash_wallet scheme (React exact match)
+            openPaytm();
+        } else if (upimethod === 'qr') {
+            // QR already visible — just trigger verification countdown
+            triggerVerification();
             return;
+        } else {
+            // Fallback: generic PhonePe URL
+            window.location.href = paymentUrl;
         }
 
-        // 4. WebView / In-App Browser Fallbacks
+        // ── WebView / In-App Browser Fallback (iOS restricted contexts) ──────
         const ua = navigator.userAgent || navigator.vendor || window.opera;
-        const isRestrictedWebView = isIOS && (
+        const isRestrictedWebView = _isIOS && (
             /FBAN|FBAV|Instagram|Messenger|Twitter|Line|Pinterest|WhatsApp/i.test(ua) ||
             (!/Safari/i.test(ua) && /AppleWebKit/i.test(ua))
         );
-
         if (isRestrictedWebView) {
-            // Write destination VPA (UPI ID) to system clipboard
-            navigator.clipboard.writeText(RECIPIENT_UPI)
-                .then(() => {
-                    console.log("UPI VPA copied to clipboard for fallback manual payment.");
-                })
-                .catch(err => {
-                    console.error("Failed to copy UPI VPA to clipboard:", err);
-                });
-
-            // Try to force-launch browser application context
+            navigator.clipboard.writeText(RECIPIENT_UPI).catch(console.error);
             const forceBrowserUrl = window.location.href.replace(/^https?:\/\//i, 'googlechromes://');
             window.location.href = forceBrowserUrl;
-
-            // Try triggering deep-link redirection after a short delay in case redirect fails
-            setTimeout(() => {
-                executeRedirection();
-            }, 1000);
-            return;
         }
 
-        executeRedirection();
-
-        function executeRedirection() {
-            // 3. Serialized Configuration Payloads (Android Native)
-            if (isAndroid) {
-                if (method === 'phonepe') {
-                    const payload = {
-                        contact: {
-                            vpa: RECIPIENT_UPI,
-                            type: "VPA",
-                            nickName: RECIPIENT_NAME
-                        },
-                        p2pPaymentCheckoutParams: {
-                            note: txnId,
-                            initialAmount: String(Math.round(selectedAmount * 100)), // Amount in Paise (Amount * 100)
-                            currency: "INR",
-                            checkoutType: "DEFAULT",
-                            transactionContext: "p2p",
-                            isByDefaultKnownContact: true,
-                            allowAmountEdit: false,
-                            disableNotesEdit: true
-                        }
-                    };
-
-                    const payloadStr = JSON.stringify(payload);
-                    const base64Payload = btoa(payloadStr);
-                    appLink = `phonepe://native?data=${encodeURIComponent(base64Payload)}&id=p2ppayment`;
-                } else if (method === 'gpay') {
-                    appLink = `intent://pay?${standardParams}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-                } else if (method === 'paytm') {
-                    appLink = `intent://pay?${standardParams}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                }
-
-                window.location.href = appLink;
-            }
-
-            // 2. App-Specific Custom Schemes (iOS/Generic Routing)
-            if (isIOS) {
-                if (method === 'phonepe') {
-                    appLink = `phonepe://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${amtStr}&cu=INR`;
-                } else if (method === 'gpay') {
-                    appLink = `tez://upi/pay?${standardParams}`;
-                } else if (method === 'paytm') {
-                    appLink = `paytmmp://pay?${standardParams}`;
-                }
-
-                // Try chosen app first
-                window.location.href = appLink;
-
-                // fallback after 1500ms if app not installed
-                let fallbackTimeout = setTimeout(() => {
-                    window.location.href = genericUPI;
-                }, 1500);
-
-                // If browser is sent to background, clear fallback timeout
-                const clearFallback = () => {
-                    clearTimeout(fallbackTimeout);
-                };
-
-                window.addEventListener("pagehide", clearFallback, { once: true });
-                document.addEventListener("visibilitychange", () => {
-                    if (document.hidden) {
-                        clearFallback();
-                    }
-                }, { once: true });
-            }
-        }
-
-        // Auto trigger verification only when the user returns to the browser screen
-        document.addEventListener("visibilitychange", () => {
-            if (!document.hidden) {
-                triggerVerification();
-            }
+        // Auto-trigger verification when user returns from the payment app
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) { triggerVerification(); }
         }, { once: true });
     }
 
@@ -317,18 +345,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // Place Order / Proceed Payment Click handler
     btnPlaceOrder.addEventListener('click', () => {
         if (!validateForm()) {
-            // Scroll to form if invalid
             nameInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
-        const selectedMethod = document.querySelector('input[name="payment-method"]:checked').value;
-        
-        if (selectedMethod === 'qr') {
-            triggerVerification();
-        } else {
-            triggerPaymentMethod(selectedMethod);
-        }
+        // Regenerate PhonePe URL with the latest selectedAmount before paying
+        openPhonepayy();
+
+        const upimethod = document.querySelector('input[name="payment-method"]:checked').value;
+        paymentHandler(upimethod);
     });
 
     // Verification countdown screen

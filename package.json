@@ -4,7 +4,7 @@
   "description": "Charity donation site with UPI deep-linking for PhonePe and Google Pay",
   "main": "index.html",
   "scripts": {
-    "dev": "vite",
+    "dev": "node api.js && vite",
     "build": "vite build",
     "preview": "vite preview"
   },
