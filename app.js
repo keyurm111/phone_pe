@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
     // Recipient UPI Config
     const RECIPIENT_UPI = 'paytm.s1pmkmg@pty';
-    const RECIPIENT_NAME = 'Charity Fund';
+    const RECIPIENT_NAME = 'ABHAY MAKWANA';
     const TRANSACTION_NOTE = 'Donation to Uplift';
 
     // Campaign Target State
@@ -146,8 +146,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // UPI Link Generator
-    function getUPILink() {
-        return `upi://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}`;
+    function getUPILink(txnId) {
+        const trParam = txnId ? `&tr=${txnId}` : `&tr=TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        return `upi://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}${trParam}`;
     }
 
     // QR Code Engine
@@ -165,7 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Launch mobile intents/deep-links
     function triggerPaymentMethod(method) {
-        const upiLink = getUPILink();
+        const txnId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        const upiLink = getUPILink(txnId);
 
         if (!isMobile) {
             // Desktop fallback: Auto-select QR code
@@ -180,23 +182,23 @@ document.addEventListener('DOMContentLoaded', () => {
         switch (method) {
             case 'phonepe':
                 if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}#Intent;scheme=upi;package=com.phonepe.app;end`;
+                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=com.phonepe.app;end`;
                 } else if (isIOS) {
-                    appLink = `phonepe://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}`;
+                    appLink = `phonepe://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
                 }
                 break;
             case 'gpay':
                 if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
                 } else if (isIOS) {
-                    appLink = `gpay://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}`;
+                    appLink = `gpay://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
                 }
                 break;
             case 'paytm':
                 if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}#Intent;scheme=upi;package=net.one97.paytm;end`;
+                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=net.one97.paytm;end`;
                 } else if (isIOS) {
-                    appLink = `paytmmp://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}`;
+                    appLink = `paytmmp://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
                 }
                 break;
         }
