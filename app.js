@@ -177,31 +177,10 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
+        // Route all selections via the generic interoperable UPI scheme (upi://)
+        // to bypass app-specific direct merchant validations (P2M checks).
+        // This processes the transaction on the open UPI rail, exactly like scanning a QR.
         let appLink = upiLink;
-
-        switch (method) {
-            case 'phonepe':
-                if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=com.phonepe.app;end`;
-                } else if (isIOS) {
-                    appLink = `phonepe://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
-                }
-                break;
-            case 'gpay':
-                if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-                } else if (isIOS) {
-                    appLink = `gpay://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
-                }
-                break;
-            case 'paytm':
-                if (isAndroid) {
-                    appLink = `intent://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                } else if (isIOS) {
-                    appLink = `paytmmp://upi/pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${selectedAmount}.00&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
-                }
-                break;
-        }
 
         // Execute app launch
         window.location.href = appLink;
