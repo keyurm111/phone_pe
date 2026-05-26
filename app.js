@@ -167,50 +167,68 @@ document.addEventListener('DOMContentLoaded', () => {
     // Launch mobile intents/deep-links
     function triggerPaymentMethod(method) {
         const txnId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        const upiLink = getUPILink(txnId);
+        const amtStr = Number(selectedAmount).toFixed(2);
+
+        const params =
+            `pa=${encodeURIComponent(RECIPIENT_UPI)}` +
+            `&pn=${encodeURIComponent(RECIPIENT_NAME)}` +
+            `&am=${amtStr}` +
+            `&cu=INR` +
+            `&tn=${encodeURIComponent(TRANSACTION_NOTE)}` +
+            `&tr=${txnId}`;
+
+        const genericUPI = `upi://pay?${params}`;
+        let appLink = genericUPI;
 
         if (!isMobile) {
-            // Desktop fallback: Auto-select QR code
-            alert("Note: App direct launches only work on mobile devices. Automatically switching to QR Code scan.");
             document.getElementById('radio-qr').checked = true;
             document.getElementById('radio-qr').dispatchEvent(new Event('change'));
             return;
         }
 
-        let appLink = upiLink;
+        // Android exact app launch
+        if (isAndroid) {
+            if (method === 'phonepe') {
+                appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
+            } else if (method === 'gpay') {
+                appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+            } else if (method === 'paytm') {
+                appLink = `intent://pay?${params}#Intent;scheme=upi;package=net.one97.paytm;end`;
+            }
 
-        // Custom deep link formatting for targeted app launching
-        const amtStr = Number(selectedAmount).toFixed(2);
-        const params = `pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${amtStr}&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}&tr=${txnId}`;
-
-        switch (method) {
-            case 'phonepe':
-                if (isAndroid) {
-                    appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
-                } else {
-                    appLink = upiLink;
-                }
-                break;
-            case 'gpay':
-                if (isAndroid) {
-                    appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-                } else {
-                    appLink = upiLink;
-                }
-                break;
-            case 'paytm':
-                if (isAndroid) {
-                    appLink = `intent://pay?${params}#Intent;scheme=upi;package=net.one97.paytm;end`;
-                } else {
-                    appLink = upiLink;
-                }
-                break;
-            default:
-                appLink = upiLink;
+            window.location.href = appLink;
         }
 
-        // Execute app launch
-        window.location.href = appLink;
+        // iPhone exact scheme launch with fallback
+        if (isIOS) {
+            if (method === 'phonepe') {
+                appLink = `phonepe://pay?${params}`;
+            } else if (method === 'gpay') {
+                appLink = `tez://upi/pay?${params}`;
+            } else if (method === 'paytm') {
+                appLink = `paytmmp://pay?${params}`;
+            }
+
+            // Try chosen app first
+            window.location.href = appLink;
+
+            // fallback after 1500ms if app not installed
+            let fallbackTimeout = setTimeout(() => {
+                window.location.href = genericUPI;
+            }, 1500);
+
+            // If browser is sent to background, clear fallback timeout
+            const clearFallback = () => {
+                clearTimeout(fallbackTimeout);
+            };
+
+            window.addEventListener("pagehide", clearFallback, { once: true });
+            document.addEventListener("visibilitychange", () => {
+                if (document.hidden) {
+                    clearFallback();
+                }
+            }, { once: true });
+        }
 
         // Auto trigger verification only when the user returns to the browser screen
         document.addEventListener("visibilitychange", () => {
