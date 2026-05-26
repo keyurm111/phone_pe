@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uplift Checkout - Complete Your Contribution</title>
+    <!-- Meta tags for SEO -->
+    <meta name="description" content="Support Uplift Charity and make a direct difference. Pay instantly using PhonePe or Google Pay.">
+    <meta name="keywords" content="charity, donation, phonepe, google pay, upi, uplift, donate, community">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    
+  <script type="module" crossorigin src="/assets/index-0084b58e.js"></script>
+  <link rel="stylesheet" href="/assets/index-4a426a5a.css">
+</head>
+<body>
+    <!-- Ambient backgrounds -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+
+    <header class="app-header">
+        <div class="logo">
+            <span class="logo-icon"><i class="fa-solid fa-hands-holding-heart"></i></span>
+            <span class="logo-text">UPLIFT</span>
+        </div>
+        <div class="header-campaign">
+            <span class="campaign-badge">Direct Charity Checkout</span>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- Campaign & Donation Config (Left Column) -->
+        <section class="campaign-info">
+            <h1 class="hero-title">Support Our Cause</h1>
+            <p class="hero-desc">
+                Your direct peer-to-peer contribution provides immediate relief, food, clean drinking water, and education to children in local communities. Enter your donation details on the right to complete the payment.
+            </p>
+
+            <!-- Dynamic Donation Config -->
+            <div class="config-panel glass-panel">
+                <h3 class="config-title"><i class="fa-solid fa-sliders"></i> 1. Choose Donation Amount</h3>
+                
+                <div class="amount-presets">
+                    <button class="preset-pill active" data-amount="99">₹99</button>
+                    <button class="preset-pill" data-amount="198">₹198</button>
+                    <button class="preset-pill" data-amount="499">₹499</button>
+                    <button class="preset-pill" data-amount="999">₹999</button>
+                </div>
+
+                <div class="custom-amount-box">
+                    <label for="donation-amount-input">Custom Amount (₹)</label>
+                    <div class="input-container">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="donation-amount-input" min="1" value="99">
+                    </div>
+                </div>
+
+                <div class="donor-details-box">
+                    <h3 class="config-title"><i class="fa-regular fa-user"></i> 2. Donor Information</h3>
+                    <div class="input-grid">
+                        <div class="input-field">
+                            <label for="donor-name-input">Full Name</label>
+                            <input type="text" id="donor-name-input" placeholder="John Doe" value="John Doe">
+                            <span class="error-msg" id="name-error">Please enter your name</span>
+                        </div>
+                        <div class="input-field">
+                            <label for="donor-email-input">Email (Optional)</label>
+                            <input type="email" id="donor-email-input" placeholder="john@example.com">
+                            <span class="error-msg" id="email-error">Please enter a valid email</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Campaign Stats -->
+            <div class="progress-container">
+                <div class="progress-header">
+                    <span class="progress-label">Campaign Goal Progress</span>
+                    <span class="progress-val" id="progress-val">₹72,400 / ₹1,00,000</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-bar-fill" style="width: 72.4%;"></div>
+                </div>
+                <div class="progress-footer">
+                    <span class="backers-count"><i class="fa-solid fa-users"></i> <span id="backers-val">524</span> Backers</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Premium Checkout Card (Right Column, exactly matching the screenshot) -->
+        <section class="donation-section">
+            <div class="checkout-ticket">
+                
+                <!-- Ticket Row 1: Amount details & Pay Online Option -->
+                <div class="ticket-row pay-online-row active">
+                    <div class="pay-online-left">
+                        <div class="price-details">
+                            <span class="crossed-price" id="display-crossed-price">₹449</span>
+                            <span class="current-price" id="display-current-price">₹99</span>
+                            <span class="savings-badge" id="display-savings-badge">Saved ₹350</span>
+                        </div>
+                        <div class="pay-online-label-group">
+                            <span class="pay-online-text">Pay Online</span>
+                            <div class="pay-online-icon-wrapper">
+                                <svg class="pay-online-svg" viewBox="0 0 24 24" width="24" height="24">
+                                    <path d="M12 2L2 22h20L12 2z" fill="#f59e0b"/>
+                                    <path d="M12 6l7.5 13.5H4.5L12 6z" fill="#ffffff"/>
+                                    <circle cx="12" cy="15" r="2" fill="#10b981"/>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="radio-outer checked">
+                        <div class="radio-inner"></div>
+                    </div>
+                </div>
+
+                <!-- Ticket Row 2: Pay by any UPI App Accordion -->
+                <div class="ticket-accordion">
+                    <div class="accordion-header">
+                        <div class="accordion-title-left">
+                            <div class="upi-logo-wrapper">
+                                <span class="upi-logo-text">UPI</span>
+                                <div class="upi-logo-arrow-group">
+                                    <span class="upi-arrow-left"></span>
+                                    <span class="upi-arrow-right"></span>
+                                </div>
+                            </div>
+                            <span class="accordion-title-text">Pay by any UPI App</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-up accordion-chevron"></i>
+                    </div>
+
+                    <!-- UPI Options Panel -->
+                    <div class="accordion-panel active">
+                        
+                        <!-- PhonePe Payment Option -->
+                        <label class="upi-option-row" for="radio-phonepe">
+                            <div class="option-row-left">
+                                <div class="app-logo-circle phonepe-logo">
+                                    <span class="logo-text-pe">pe</span>
+                                </div>
+                                <div class="option-details">
+                                    <span class="option-title">Phonepe</span>
+                                    <span class="option-subtitle">Upto ₹100 cashback on RuPay Credit Card on UPI using Phonepe*</span>
+                                </div>
+                            </div>
+                            <div class="radio-container">
+                                <input type="radio" id="radio-phonepe" name="payment-method" value="phonepe" checked>
+                                <span class="custom-radio"></span>
+                            </div>
+                        </label>
+
+                        <!-- Google Pay Payment Option -->
+                        <label class="upi-option-row" for="radio-gpay">
+                            <div class="option-row-left">
+                                <div class="app-logo-circle gpay-logo">
+                                    <i class="fa-brands fa-google-pay"></i>
+                                </div>
+                                <div class="option-details">
+                                    <span class="option-title">Google Pay</span>
+                                    <span class="option-subtitle">Fast and secure direct checkout using Google Pay app*</span>
+                                </div>
+                            </div>
+                            <div class="radio-container">
+                                <input type="radio" id="radio-gpay" name="payment-method" value="gpay">
+                                <span class="custom-radio"></span>
+                            </div>
+                        </label>
+
+                        <!-- Paytm Payment Option -->
+                        <label class="upi-option-row" for="radio-paytm">
+                            <div class="option-row-left">
+                                <div class="app-logo-circle paytm-logo">
+                                    <span class="logo-text-paytm">paytm</span>
+                                </div>
+                                <div class="option-details">
+                                    <span class="option-title">Paytm</span>
+                                    <span class="option-subtitle">₹30–₹300 Cashback for first-time and dormant Paytm UPI users*</span>
+                                </div>
+                            </div>
+                            <div class="radio-container">
+                                <input type="radio" id="radio-paytm" name="payment-method" value="paytm">
+                                <span class="custom-radio"></span>
+                            </div>
+                        </label>
+
+                        <!-- Scan QR Option -->
+                        <label class="upi-option-row qr-option-row" for="radio-qr">
+                            <div class="option-row-left">
+                                <div class="app-logo-circle qr-logo-circle">
+                                    <i class="fa-solid fa-qrcode"></i>
+                                </div>
+                                <div class="option-details">
+                                    <span class="option-title">Scan the QR</span>
+                                    <span class="option-subtitle">Show static/dynamic UPI QR Code to scan & pay from any app</span>
+                                </div>
+                            </div>
+                            <div class="radio-container">
+                                <input type="radio" id="radio-qr" name="payment-method" value="qr">
+                                <span class="custom-radio"></span>
+                            </div>
+                        </label>
+
+                        <!-- Inline QR Display Box (Expands when "Scan QR" radio is checked) -->
+                        <div class="inline-qr-container" id="inline-qr-container">
+                            <div class="qr-box">
+                                <canvas id="upi-qr-canvas"></canvas>
+                                <div class="qr-inner-heart"><i class="fa-solid fa-heart"></i></div>
+                            </div>
+                            <div class="qr-desc">
+                                <span class="qr-info-label">Recipient UPI VPA</span>
+                                <div class="qr-vpa-badge">
+                                    <span id="display-recipient-vpa">paytm.s1pmkmg@pty</span>
+                                    <button type="button" class="copy-vpa-btn" id="btn-copy-vpa" title="Copy VPA">
+                                        <i class="fa-regular fa-copy"></i>
+                                    </button>
+                                </div>
+                                <p class="qr-instructions-text">Scan with PhonePe, Google Pay, Paytm, or any banking app to contribute ₹<span id="qr-display-amount">99</span>.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- Disabled Option: Wallet -->
+                <div class="ticket-row-disabled">
+                    <div class="row-disabled-left">
+                        <span class="disabled-title">Wallet</span>
+                        <span class="server-down-badge">Server Down</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down disabled-chevron"></i>
+                </div>
+
+                <!-- Disabled Option: Cards -->
+                <div class="ticket-row-disabled">
+                    <div class="row-disabled-left">
+                        <span class="disabled-title">Debit/Credit Cards</span>
+                        <span class="server-down-badge">Server Down</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down disabled-chevron"></i>
+                </div>
+
+                <!-- Disabled Option: Net Banking -->
+                <div class="ticket-row-disabled">
+                    <div class="row-disabled-left">
+                        <span class="disabled-title">Net Banking</span>
+                        <span class="server-down-badge">Server Down</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down disabled-chevron"></i>
+                </div>
+
+                <!-- Bottom Proceed Button -->
+                <div class="checkout-footer">
+                    <button type="button" class="place-order-btn" id="btn-place-order">
+                        PROCEED TO PAY <i class="fa-solid fa-chevron-right"></i>
+                    </button>
+                    <p class="p2p-disclaimer">Secure P2P transfer directly to registered charity UPI: paytm.s1pmkmg@pty</p>
+                </div>
+
+            </div>
+        </section>
+    </main>
+
+    <!-- Verification / Loader Overlay -->
+    <div class="loader-overlay" id="loader-overlay">
+        <div class="loader-content">
+            <div class="premium-spinner">
+                <div class="inner-spinner spinner-1"></div>
+                <div class="inner-spinner spinner-2"></div>
+                <div class="inner-spinner spinner-3"></div>
+                <div class="spinner-heart"><i class="fa-solid fa-heart"></i></div>
+            </div>
+            <h3 class="loader-title">Verifying Payment</h3>
+            <p class="loader-desc">Please wait while we check the UPI network transaction status...</p>
+            <div class="timer-countdown">Estimated time: <span id="loader-timer">5</span>s</div>
+        </div>
+    </div>
+
+    <!-- SUCCESS MODAL: Certificate Presentation -->
+    <div class="modal-overlay" id="certificate-modal">
+        <div class="modal-container">
+            <button class="close-modal" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            
+            <div class="confetti-container" id="confetti-container"></div>
+            
+            <div class="certificate-wrapper-outer">
+                <div class="certificate-card" id="certificate-card">
+                    <!-- Decorative border lines -->
+                    <div class="cert-border-corner top-left"></div>
+                    <div class="cert-border-corner top-right"></div>
+                    <div class="cert-border-corner bottom-left"></div>
+                    <div class="cert-border-corner bottom-right"></div>
+
+                    <div class="cert-header">
+                        <div class="cert-logo">
+                            <span class="logo-icon"><i class="fa-solid fa-hands-holding-heart"></i></span>
+                            <span class="logo-text">UPLIFT</span>
+                        </div>
+                        <div class="cert-title">CERTIFICATE OF APPRECIATION</div>
+                    </div>
+                    
+                    <div class="cert-body">
+                        <p class="cert-subtitle">This certificate is proudly presented to</p>
+                        <h2 class="cert-donor-name" id="cert-donor-name">John Doe</h2>
+                        <div class="cert-divider"></div>
+                        <p class="cert-message">
+                            In grateful recognition of your contribution of <span class="cert-amount" id="cert-amount">₹99</span> to the 
+                            <strong>Uplift Clean Water & Education Initiative</strong>. Your kindness supports local communities and creates sustainable progress.
+                        </p>
+                    </div>
+
+                    <div class="cert-footer">
+                        <div class="cert-meta">
+                            <span class="meta-item"><strong>Date:</strong> <span id="cert-date">May 26, 2026</span></span>
+                            <span class="meta-item"><strong>Receipt ID:</strong> <span id="cert-receipt-id">TXN-9823058471</span></span>
+                        </div>
+                        <div class="cert-signature-box">
+                            <div class="signature">Uplift Team</div>
+                            <div class="signature-title">Authorized Seal</div>
+                        </div>
+                    </div>
+
+                    <!-- Watermark -->
+                    <div class="cert-watermark"><i class="fa-solid fa-heart"></i></div>
+                </div>
+            </div>
+
+            <div class="modal-action-row">
+                <button type="button" class="btn btn-secondary" id="btn-print-cert">
+                    <i class="fa-solid fa-print"></i> Print / PDF
+                </button>
+                <button type="button" class="btn btn-primary" id="btn-share-cert">
+                    <i class="fa-solid fa-share-nodes"></i> Share Gratitude
+                </button>
+            </div>
+            <div class="share-success-msg" id="share-success-msg">Copied certificate link to clipboard!</div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer-bottom">
+        <p>&copy; 2026 Uplift Foundation. All contributions are direct peer-to-peer transfers to the designated UPI account.</p>
+        <p class="disclaimer">Recipient UPI VPA: <strong>paytm.s1pmkmg@pty</strong>. For payment queries, contact payments@uplift.org.</p>
+    </footer>
+
+    <!-- QR Code Library QRious -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js" integrity="sha512-pUhApVQtLbnpLtJn6DuzDD5o2xtmLJnJ7oBoMsBnzOkVkpqofGLGPaBJ6ayD2zQe3lCgCibhJBi4cj5wAxwVKA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Custom Application Javascript -->
+    
+</body>
+</html>
