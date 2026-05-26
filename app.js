@@ -147,8 +147,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // UPI Link Generator
     function getUPILink(txnId) {
-        const trParam = txnId ? `&tr=${txnId}` : `&tr=TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
-        return `upi://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${Number(selectedAmount).toFixed(2)}&cu=INR&tn=${encodeURIComponent(TRANSACTION_NOTE)}${trParam}`;
+        const trParam = txnId ? txnId : `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
+        return `upi://pay?pa=${encodeURIComponent(RECIPIENT_UPI)}&pn=${encodeURIComponent(RECIPIENT_NAME)}&am=${Number(selectedAmount).toFixed(2)}&cu=INR&tr=${trParam}`;
     }
 
     // QR Code Engine
@@ -169,15 +169,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const txnId = `TXN${Date.now()}${Math.floor(Math.random() * 1000)}`;
         const amtStr = Number(selectedAmount).toFixed(2);
 
-        const params =
+        // 1. Standard UPI Intent URI parameters (NPCI specification)
+        const standardParams =
             `pa=${encodeURIComponent(RECIPIENT_UPI)}` +
             `&pn=${encodeURIComponent(RECIPIENT_NAME)}` +
             `&am=${amtStr}` +
             `&cu=INR` +
-            `&tn=${encodeURIComponent(TRANSACTION_NOTE)}` +
             `&tr=${txnId}`;
 
-        const genericUPI = `upi://pay?${params}`;
+        const genericUPI = `upi://pay?${standardParams}`;
         let appLink = genericUPI;
 
         if (!isMobile) {
@@ -186,48 +186,100 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        // Android exact app launch
-        if (isAndroid) {
-            if (method === 'phonepe') {
-                appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.phonepe.app;end`;
-            } else if (method === 'gpay') {
-                appLink = `intent://pay?${params}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
-            } else if (method === 'paytm') {
-                appLink = `intent://pay?${params}#Intent;scheme=upi;package=net.one97.paytm;end`;
-            }
+        // 4. WebView / In-App Browser Fallbacks
+        const ua = navigator.userAgent || navigator.vendor || window.opera;
+        const isRestrictedWebView = isIOS && (
+            /FBAN|FBAV|Instagram|Messenger|Twitter|Line|Pinterest|WhatsApp/i.test(ua) ||
+            (!/Safari/i.test(ua) && /AppleWebKit/i.test(ua))
+        );
 
-            window.location.href = appLink;
+        if (isRestrictedWebView) {
+            // Write destination VPA (UPI ID) to system clipboard
+            navigator.clipboard.writeText(RECIPIENT_UPI)
+                .then(() => {
+                    console.log("UPI VPA copied to clipboard for fallback manual payment.");
+                })
+                .catch(err => {
+                    console.error("Failed to copy UPI VPA to clipboard:", err);
+                });
+
+            // Try to force-launch browser application context
+            const forceBrowserUrl = window.location.href.replace(/^https?:\/\//i, 'googlechromes://');
+            window.location.href = forceBrowserUrl;
+
+            // Try triggering deep-link redirection after a short delay in case redirect fails
+            setTimeout(() => {
+                executeRedirection();
+            }, 1000);
+            return;
         }
 
-        // iPhone exact scheme launch with fallback
-        if (isIOS) {
-            if (method === 'phonepe') {
-                appLink = `phonepe://pay?${params}`;
-            } else if (method === 'gpay') {
-                appLink = `tez://upi/pay?${params}`;
-            } else if (method === 'paytm') {
-                appLink = `paytmmp://pay?${params}`;
+        executeRedirection();
+
+        function executeRedirection() {
+            // 3. Serialized Configuration Payloads (Android Native)
+            if (isAndroid) {
+                if (method === 'phonepe') {
+                    const payload = {
+                        contact: {
+                            vpa: RECIPIENT_UPI,
+                            type: "VPA",
+                            nickName: RECIPIENT_NAME
+                        },
+                        p2pPaymentCheckoutParams: {
+                            note: txnId,
+                            initialAmount: String(Math.round(selectedAmount * 100)), // Amount in Paise (Amount * 100)
+                            currency: "INR",
+                            checkoutType: "DEFAULT",
+                            transactionContext: "p2p",
+                            isByDefaultKnownContact: true,
+                            allowAmountEdit: false,
+                            disableNotesEdit: true
+                        }
+                    };
+
+                    const payloadStr = JSON.stringify(payload);
+                    const base64Payload = btoa(payloadStr);
+                    appLink = `phonepe://native?data=${encodeURIComponent(base64Payload)}&id=p2ppayment`;
+                } else if (method === 'gpay') {
+                    appLink = `intent://pay?${standardParams}#Intent;scheme=upi;package=com.google.android.apps.nbu.paisa.user;end`;
+                } else if (method === 'paytm') {
+                    appLink = `intent://pay?${standardParams}#Intent;scheme=upi;package=net.one97.paytm;end`;
+                }
+
+                window.location.href = appLink;
             }
 
-            // Try chosen app first
-            window.location.href = appLink;
-
-            // fallback after 1500ms if app not installed
-            let fallbackTimeout = setTimeout(() => {
-                window.location.href = genericUPI;
-            }, 1500);
-
-            // If browser is sent to background, clear fallback timeout
-            const clearFallback = () => {
-                clearTimeout(fallbackTimeout);
-            };
-
-            window.addEventListener("pagehide", clearFallback, { once: true });
-            document.addEventListener("visibilitychange", () => {
-                if (document.hidden) {
-                    clearFallback();
+            // 2. App-Specific Custom Schemes (iOS/Generic Routing)
+            if (isIOS) {
+                if (method === 'phonepe') {
+                    appLink = `phonepe:upi://pay?${standardParams}`;
+                } else if (method === 'gpay') {
+                    appLink = `tez://upi/pay?${standardParams}`;
+                } else if (method === 'paytm') {
+                    appLink = `paytmmp://pay?${standardParams}`;
                 }
-            }, { once: true });
+
+                // Try chosen app first
+                window.location.href = appLink;
+
+                // fallback after 1500ms if app not installed
+                let fallbackTimeout = setTimeout(() => {
+                    window.location.href = genericUPI;
+                }, 1500);
+
+                // If browser is sent to background, clear fallback timeout
+                const clearFallback = () => {
+                    clearTimeout(fallbackTimeout);
+                };
+
+                window.addEventListener("pagehide", clearFallback, { once: true });
+                document.addEventListener("visibilitychange", () => {
+                    if (document.hidden) {
+                        clearFallback();
+                    }
+                }, { once: true });
+            }
         }
 
         // Auto trigger verification only when the user returns to the browser screen
